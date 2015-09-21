@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-  "time"
+	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -31,104 +31,104 @@ var (
 func main() {
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version("0.1")
 	kingpin.CommandLine.Help = "CLI for AWS CloudWatch Logs."
-  cmd := kingpin.Parse()
+	cmd := kingpin.Parse()
 
-  creds := credentials.NewStaticCredentials(*accessKeyId, *secretAccessKey, "")
-  config := aws.NewConfig().WithRegion(*region).WithCredentials(creds)
-  client := cloudwatchlogs.New(config)
+	creds := credentials.NewStaticCredentials(*accessKeyId, *secretAccessKey, "")
+	config := aws.NewConfig().WithRegion(*region).WithCredentials(creds)
+	client := cloudwatchlogs.New(config)
 
-  switch cmd {
-  case "groups":
-    kingpin.FatalIfError(cmdGroups(client), "List log groups")
-  case "streams":
-    kingpin.FatalIfError(cmdStreams(client, *streamsGroup), "List log streams")
-  case "events":
-    kingpin.FatalIfError(cmdEvents(client, *eventsGroup, *eventsPattern, *eventsStartTime, *eventsEndTime), "List log events")
-  }
+	switch cmd {
+	case "groups":
+		kingpin.FatalIfError(cmdGroups(client), "List log groups")
+	case "streams":
+		kingpin.FatalIfError(cmdStreams(client, *streamsGroup), "List log streams")
+	case "events":
+		kingpin.FatalIfError(cmdEvents(client, *eventsGroup, *eventsPattern, *eventsStartTime, *eventsEndTime), "List log events")
+	}
 }
 
 func cmdGroups(client *cloudwatchlogs.CloudWatchLogs) error {
-  req := cloudwatchlogs.DescribeLogGroupsInput{}
+	req := cloudwatchlogs.DescribeLogGroupsInput{}
 
-  handler := func(res *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
-    for _, group := range res.LogGroups {
-      name := group.LogGroupName
-      fmt.Printf("%s\n", *name)
-    }
+	handler := func(res *cloudwatchlogs.DescribeLogGroupsOutput, lastPage bool) bool {
+		for _, group := range res.LogGroups {
+			name := group.LogGroupName
+			fmt.Printf("%s\n", *name)
+		}
 
-    return true // want more pages
-  }
+		return true // want more pages
+	}
 
-  err := client.DescribeLogGroupsPages(&req, handler)
-  if err != nil {
-    return err;
-  }
+	err := client.DescribeLogGroupsPages(&req, handler)
+	if err != nil {
+		return err
+	}
 
-  return nil
+	return nil
 }
 
 func cmdStreams(client *cloudwatchlogs.CloudWatchLogs, group string) error {
-  req := cloudwatchlogs.DescribeLogStreamsInput{LogGroupName: &group}
+	req := cloudwatchlogs.DescribeLogStreamsInput{LogGroupName: &group}
 
-  handler := func(res *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
-    for _, stream := range res.LogStreams {
-      name := stream.LogStreamName
-      fmt.Printf("%s\n", *name)
-    }
+	handler := func(res *cloudwatchlogs.DescribeLogStreamsOutput, lastPage bool) bool {
+		for _, stream := range res.LogStreams {
+			name := stream.LogStreamName
+			fmt.Printf("%s\n", *name)
+		}
 
-    return true // want more pages
-  }
+		return true // want more pages
+	}
 
-  err := client.DescribeLogStreamsPages(&req, handler)
-  if err != nil {
-    return err;
-  }
+	err := client.DescribeLogStreamsPages(&req, handler)
+	if err != nil {
+		return err
+	}
 
-  return nil
+	return nil
 }
 
 func parseTime(timeStr string) time.Time {
-  loc, _ := time.LoadLocation("UTC")
-  const timeFmt = "2006-01-02T15:04:05"
+	loc, _ := time.LoadLocation("UTC")
+	const timeFmt = "2006-01-02T15:04:05"
 
-  t, _ := time.ParseInLocation(timeFmt, timeStr, loc)
+	t, _ := time.ParseInLocation(timeFmt, timeStr, loc)
 
-  return t
+	return t
 }
 
 func cmdEvents(client *cloudwatchlogs.CloudWatchLogs, group string, pattern string, startTime string, endTime string) error {
-  interleaved := true
-  req := cloudwatchlogs.FilterLogEventsInput{LogGroupName: &group, Interleaved: &interleaved}
+	interleaved := true
+	req := cloudwatchlogs.FilterLogEventsInput{LogGroupName: &group, Interleaved: &interleaved}
 
-  if pattern != "" {
-    req.FilterPattern = &pattern
-  }
+	if pattern != "" {
+		req.FilterPattern = &pattern
+	}
 
-  if startTime != "" {
-    startTimeInt64 := parseTime(startTime).Unix()
-    req.StartTime = &startTimeInt64
-  }
+	if startTime != "" {
+		startTimeInt64 := parseTime(startTime).Unix()
+		req.StartTime = &startTimeInt64
+	}
 
-  if endTime != "" {
-    endTimeInt64 := parseTime(endTime).Unix()
-    req.EndTime = &endTimeInt64
-  }
+	if endTime != "" {
+		endTimeInt64 := parseTime(endTime).Unix()
+		req.EndTime = &endTimeInt64
+	}
 
-  handler := func(res *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
-    for _, event := range res.Events {
-      message := event.Message
-      fmt.Printf("%s\n", *message)
-    }
+	handler := func(res *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
+		for _, event := range res.Events {
+			message := event.Message
+			fmt.Printf("%s\n", *message)
+		}
 
-    return true // want more pages
-  }
+		return true // want more pages
+	}
 
-  err := client.FilterLogEventsPages(&req, handler)
-  if err != nil {
-    return err;
-  }
+	err := client.FilterLogEventsPages(&req, handler)
+	if err != nil {
+		return err
+	}
 
-  return nil
+	return nil
 }
 
 // API docs
