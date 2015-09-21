@@ -6,7 +6,8 @@ CLI for AWS CloudWatch Logs
 
 ```bash
 $ obvs --help
-usage: obvs --access-key-id=ACCESS-KEY-ID --secret-access-key=SECRET-ACCESS-KEY [<flags>] <command> [<args> ...]
+usage: obvs --access-key-id=ACCESS-KEY-ID --secret-access-key=SECRET-ACCESS-KEY \
+            [<flags>] <command> [<args> ...]
 
 CLI for AWS CloudWatch Logs.
 
