@@ -1,6 +1,6 @@
 # Obvs
 
-CLI for AWS CloudWatch Logs
+CLI for [AWS CloudWatch Logs](https://aws.amazon.com/cloudwatch/details/#log-monitoring).
 
 ## Usage
 
