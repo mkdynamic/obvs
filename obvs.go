@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 )
 
@@ -34,7 +35,7 @@ func main() {
 	cmd := kingpin.Parse()
 
 	creds := credentials.NewStaticCredentials(*accessKeyId, *secretAccessKey, "")
-	config := aws.NewConfig().WithRegion(*region).WithCredentials(creds)
+	config := session.New(&aws.Config{Region: region, Credentials: creds})
 	client := cloudwatchlogs.New(config)
 
 	switch cmd {
@@ -117,7 +118,9 @@ func cmdEvents(client *cloudwatchlogs.CloudWatchLogs, group string, pattern stri
 	handler := func(res *cloudwatchlogs.FilterLogEventsOutput, lastPage bool) bool {
 		for _, event := range res.Events {
 			message := event.Message
-			fmt.Printf("%s\n", *message)
+			streamName := event.LogStreamName
+			eventId := event.EventId
+			fmt.Printf("{%s/%s} %s\n", *streamName, *eventId, *message)
 		}
 
 		return true // want more pages
